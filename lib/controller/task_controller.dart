@@ -7,6 +7,7 @@ class TaskController extends GetxController {
   @override
   void onClose() {
     titleController.dispose();
+    taskDescriptionController.dispose();
     super.onClose();
   }
 
@@ -19,6 +20,8 @@ class TaskController extends GetxController {
 
   static TaskController get to => Get.find();
   TextEditingController titleController = TextEditingController();
+  TextEditingController taskDescriptionController = TextEditingController();
+  DateTime selectedDateTime = DateTime.now();
   RxString errorMsg = ''.obs;
   RxList<TaskPriority> taskPriorityList = <TaskPriority>[
     TaskPriority(title: 'Normal', color: Colors.greenAccent, isSelected: true),
@@ -45,7 +48,6 @@ class TaskController extends GetxController {
   Future<void> getTask() async {
     try {
       taskList.value = await DBHelper.getTasks();
-
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -69,6 +71,30 @@ class TaskController extends GetxController {
       taskList.removeWhere((e) => e.id == id);
     } catch (e) {
       debugPrint(e.toString());
+    }
+  }
+
+  Future<void> pickDateTime(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: selectedDateTime,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+      );
+      if (pickedTime != null) {
+        selectedDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+      }
     }
   }
 }
